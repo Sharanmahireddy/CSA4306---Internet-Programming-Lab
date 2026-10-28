@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgriMart Agricultural Store</title>
+<style>
+:root{--navy:#173b5e;--blue:#236da3;--pale:#eaf3fa;--bg:#f3f6f9;--ink:#203040;--muted:#64748b;--line:#d9e2eb;--green:#176b43}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+header{background:linear-gradient(120deg,#123452,#2679b0);color:white;padding:24px max(18px,calc((100% - 1180px)/2));display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+header h1{margin:0 0 5px;font-size:clamp(22px,3vw,30px)}header p{margin:0;color:#dbeaf5;font-size:14px}
+#session{background:#ffffff22;border:1px solid #ffffff55;padding:7px 11px;border-radius:30px;font-size:13px}
+nav{display:flex;gap:7px;flex-wrap:wrap;padding:12px max(18px,calc((100% - 1180px)/2));background:white;box-shadow:0 2px 7px #0000000b;position:sticky;top:0;z-index:3}
+button{border:0;border-radius:7px;padding:9px 12px;background:var(--blue);color:white;font-weight:600;cursor:pointer}button:hover{filter:brightness(.92)}nav button{background:#edf2f7;color:var(--navy)}nav button.active,nav button:hover{background:var(--navy);color:white}
+button.gray{background:#e7edf3;color:#263c50}button.danger{background:#b93c45}button.small{padding:6px 8px;font-size:12px}
+main{max-width:1180px;margin:22px auto;padding:0 18px}.view{display:none}.view.active{display:block}
+.panel{background:white;border:1px solid var(--line);border-radius:12px;padding:19px;margin-bottom:18px;box-shadow:0 4px 14px #18344b08}
+h2{color:var(--navy);font-size:20px;margin:0 0 14px}h3{font-size:16px;margin:0 0 8px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat{background:var(--pale);border-radius:9px;padding:14px}.stat strong{font-size:25px;color:var(--navy);display:block}.stat span,.muted{font-size:13px;color:var(--muted)}
+label{display:block;font-size:13px;font-weight:bold;margin:9px 0 5px}input,select,textarea{width:100%;padding:10px;border:1px solid #cbd6e0;border-radius:7px;font:inherit;background:white}textarea{min-height:80px;resize:vertical}
+.row{display:flex;gap:12px;align-items:end}.row>*{flex:1;min-width:0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0;list-style:none}.features li{background:#f6f9fc;border:1px solid #e3ebf2;border-radius:7px;padding:8px 10px;font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.itemcard{border:1px solid var(--line);border-radius:9px;padding:14px;min-width:0}.itemcard h3{color:var(--navy)}.itemcard p{font-size:13px;color:var(--muted);margin:5px 0}.pill{display:inline-block;background:#e8f1f9;color:#1b5a87;padding:3px 8px;border-radius:20px;font-size:12px}
+.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #e7edf2;vertical-align:top}th{background:#f4f8fb;color:#294b68}
+.notice{display:none;padding:10px 12px;border-radius:7px;background:#e5f6ec;color:#17623b;margin-top:10px;font-size:13px}.notice.error{background:#fff0ef;color:#9d2d2d}
+#adminArea{display:none}footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+@media(max-width:760px){.grid,.cards,.features,.stats{grid-template-columns:1fr}.row{display:block}}
+</style>
+</head>
+<body>
+<header><div><h1>AgriMart</h1><p>Buy farming supplies and manage farmer listings, orders and shipping.</p></div><div id="session">Not logged in</div></header>
+<nav id="nav">
+<button class="active" data-view="home">Home</button>
+<button data-view="catalog">Browse / Search</button>
+<button data-view="account">Register / Login</button>
+<button data-view="request">Submit / Book / Order</button>
+<button data-view="records">My Records</button>
+<button data-view="admin">Admin / Management</button>
+<button data-view="info">Information / Contact</button>
+</nav>
+<main>
+<section id="home" class="view active">
+ <div class="panel"><h2>Welcome</h2><p>Buy farming supplies and manage farmer listings, orders and shipping.</p><div class="stats"><div class="stat"><strong id="countItems">0</strong><span>Catalogue items</span></div><div class="stat"><strong id="countRecords">0</strong><span>Saved records</span></div><div class="stat"><strong id="countUsers">0</strong><span>Registered users</span></div></div><div class="actions"><button onclick="showView('catalog')">Browse now</button><button class="gray" onclick="showView('request')">Start a request</button></div></div>
+ <div class="grid"><div class="panel"><h2>Included features</h2><ul class="features" id="featureList"></ul></div><div class="panel"><h2>Account and demo access</h2><p>Register a user account to try the user workflow. The demo administrator account is:</p><p><b>Username:</b> admin<br><b>Password:</b> admin123</p><p class="muted">For role-specific workflows, select a role when registering or log in using the demo administrator account.</p><h3>Current roles</h3><div id="roleList"></div></div></div>
+</section>
+<section id="catalog" class="view">
+ <div class="panel"><h2 id="catalogHeading">Browse catalogue</h2><div class="row"><div><label for="search">Search</label><input id="search" placeholder="Search by name, category, description" oninput="renderCatalog()"></div><div><label for="category">Category / Type</label><select id="category" onchange="renderCatalog()"><option value="">All</option></select></div></div><div class="cards" id="catalogCards" style="margin-top:16px"></div></div>
+ <div class="panel"><h2>Selected item details</h2><div id="details" class="muted">Choose Details on an item to view its information.</div></div>
+</section>
+<section id="account" class="view">
+ <div class="grid">
+ <div class="panel"><h2>Register</h2><form id="registerForm"><label>Full name</label><input id="regName" required><label>Email / username</label><input id="regEmail" required><label>Password</label><input id="regPassword" type="password" minlength="4" required><label>Role</label><select id="regRole"></select><label>Phone / ID (if applicable)</label><input id="regExtra" placeholder="Phone, student ID or voter ID"><button type="submit">Create account</button><div id="registerNotice" class="notice"></div></form></div>
+ <div class="panel"><h2>Login</h2><form id="loginForm"><label>Email / username</label><input id="loginEmail" required><label>Password</label><input id="loginPassword" type="password" required><button type="submit">Login</button><button type="button" class="gray" onclick="logout()">Logout</button><div id="loginNotice" class="notice"></div></form><p class="muted">Admin demo: admin / admin123. User accounts created here are stored in this browser only.</p></div>
+ </div>
+ <div class="panel"><h2>Profile</h2><div id="profileGuest" class="muted">Log in to see profile information.</div><form id="profileForm" style="display:none"><label>Name</label><input id="profileName" required><label>Email / username</label><input id="profileEmail" required><label>Phone / ID</label><input id="profileExtra"><button>Update profile</button><div id="profileNotice" class="notice"></div></form></div>
+</section>
+<section id="request" class="view">
+ <div class="panel"><h2 id="requestHeading">Submit a request</h2><p class="muted" id="requestHelp">Fill in the details. A record will be saved in this browser.</p>
+ <form id="requestForm"><div class="row"><div><label>Your name</label><input id="reqName" required></div><div><label>Email / contact / ID</label><input id="reqContact" required></div></div>
+ <div class="row"><div><label id="entityFieldLabel">Choose item</label><select id="reqItem" required></select></div><div><label>Date / appointment / journey</label><input id="reqDate" type="date"></div></div>
+ <div class="row"><div><label>Category / type / location</label><input id="reqType" placeholder="Enter type, route, location or category"></div><div><label>Amount / price / guests (if applicable)</label><input id="reqAmount" type="number" min="0" placeholder="Optional"></div></div>
+ <label>Additional details, address, passenger/patient/vehicle information</label><textarea id="reqDetails" placeholder="Enter any details required for your request"></textarea>
+ <label>Attachment name or image URL (if applicable)</label><input id="reqAttachment" placeholder="File name or image URL">
+ <button type="submit" id="requestButton">Submit</button><div id="requestNotice" class="notice"></div></form></div>
+</section>
+<section id="records" class="view">
+ <div class="panel"><h2>My Records / History</h2><p class="muted">Your own requests appear here after login. Admin can view all records in the management panel.</p><div id="myRecords" class="tablewrap"></div></div>
+ <div class="panel"><h2>Additional status and report</h2><div id="mySummary" class="muted">Log in to see your status.</div><button class="gray" onclick="downloadMyRecords()">Download my records (CSV)</button></div>
+</section>
+<section id="admin" class="view">
+ <div class="panel"><h2>Admin / Management Dashboard</h2><p id="adminHint" class="muted">Log in as admin to access management features.</p></div>
+ <div id="adminArea">
+ <div class="grid">
+  <div class="panel"><h2 id="itemFormHeading">Add / Update Item</h2><form id="itemForm"><input type="hidden" id="editId"><label id="nameLabel">Name / Title</label><input id="itemName" required><label>Category / Type</label><input id="itemCategory" required><label>Price / Quantity / Value</label><input id="itemValue" type="number" min="0" value="1"><label>Location / Author / Contact</label><input id="itemMeta"><label>Description / Details</label><textarea id="itemDescription"></textarea><label>Image URL (optional)</label><input id="itemImage" type="url" placeholder="https://..."><div class="actions"><button type="submit">Save item</button><button type="button" class="gray" onclick="resetItemForm()">Clear</button></div><div id="itemNotice" class="notice"></div></form></div>
+  <div class="panel"><h2>Management tools</h2><p>Use the table below to edit or remove catalogue entries. Depending on the experiment, this represents inventory, room/vehicle/product/policy/category/candidate/doctor/listing management.</p><h3>Role actions</h3><ul id="adminFeatureList"></ul><p class="muted">Changes are stored locally in this browser.</p></div>
+ </div>
+ <div class="panel"><h2>Catalogue Management</h2><div id="adminCatalog" class="tablewrap"></div></div>
+ <div class="panel"><h2 id="allRecordsHeading">All requests, bookings and transactions</h2><div id="allRecords" class="tablewrap"></div></div>
+ <div class="panel"><h2>Admin notes / page information</h2><form id="infoForm"><label>Page / notice title</label><input id="infoTitle" placeholder="About, FAQ, policy, news, rules or announcement"><label>Information</label><textarea id="infoText" placeholder="Enter information to display on the information page"></textarea><button>Save information</button><div id="infoNotice" class="notice"></div></form><div id="savedInfo"></div></div>
+ </div>
+</section>
+<section id="info" class="view">
+ <div class="panel"><h2>Information / Contact</h2><div id="informationContent"><p>Use this section for contact information, FAQs, local guides, policies, news and other information relevant to this experiment.</p></div></div>
+ <div class="panel"><h2>Contact / Feedback</h2><form id="contactForm"><label>Name</label><input id="contactName" required><label>Email / contact</label><input id="contactEmail" required><label>Subject</label><input id="contactSubject" required><label>Message / feedback</label><textarea id="contactMessage" required></textarea><button>Submit message</button><div id="contactNotice" class="notice"></div></form><p class="muted">Messages are saved locally; this demo does not send email or SMS.</p></div>
+</section>
+</main>
+<footer>Internet Programming Lab · Experiment 18 · AgriMart Agricultural Store</footer>
+<script>
+const APP={"n": 18, "name": "AgriMart Agricultural Store", "brand": "AgriMart", "desc": "Buy farming supplies and manage farmer listings, orders and shipping.", "actors": ["Farmer / Seller", "Public Customer"], "items": "Agricultural Products", "item": "Product", "samples": ["Tomato Seeds", "Organic Fertilizer", "Garden Sprayer", "Hand Cultivator"], "features": ["Farmer login, registration and OTP demo", "Farmer manages orders and updates order status", "Add, update and delete products", "Upload product image URL", "View sales and update shipping status", "Public registration/login and OTP demo", "My account and wallet balance", "View and search products", "Add, edit and delete cart items", "Add/edit shipping address", "Place order and view order/shipping status"], "workflow": "shop"};
+const KEY="ip_experiment_"+APP.n+"_v2";
+const sampleItems=APP.samples.map((name,i)=>({id:i+1,name,category:APP.n===1?["Programming","Database","Computer Science","Networking"][i%4]:APP.n===2?["Standard","Deluxe","Suite","Executive"][i%4]:APP.n===17?"Election":APP.n===8?"Specialty":APP.n===20?["Car","SUV","Truck","Sedan"][i%4]:"General",value:APP.workflow==="shop"?[499,799,999,1299][i%4]:APP.workflow==="booking"||APP.workflow==="appointment"||APP.workflow==="rental"?[1200,1800,2400,900][i%4]:1,meta:APP.n===1?["Reema Thareja","Abraham Silberschatz","Narasimha Karumanchi","Andrew S. Tanenbaum"][i%4]:"Available",description:"Sample "+APP.item.toLowerCase()+" record for the "+APP.name+". Edit or replace it from the admin dashboard.",image:""}));
+const defaults={users:[],items:sampleItems,records:[],messages:[],infos:[]};
+function clone(x){return JSON.parse(JSON.stringify(x))}
+function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(x&&x.items&&x.users&&x.records)return x}catch(e){}return clone(defaults)}
+let db=load(),current=null;
+function save(){localStorage.setItem(KEY,JSON.stringify(db));renderAll()}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===id));renderAll();window.scrollTo({top:0,behavior:"smooth"})}
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
+function note(id,msg,error=false){const el=document.getElementById(id);el.textContent=msg;el.className="notice"+(error?" error":"");el.style.display="block"}
+function isAdmin(){return current&&current.role==="Administrator"}
+function roleOptions(){return APP.actors.map(x=>`<option>${esc(x)}</option>`).join("")}
+function renderAll(){
+ document.getElementById("session").textContent=current?current.name+" · "+current.role:"Not logged in";
+ document.getElementById("countItems").textContent=db.items.length;
+ document.getElementById("countRecords").textContent=db.records.length;
+ document.getElementById("countUsers").textContent=db.users.length;
+ document.getElementById("featureList").innerHTML=APP.features.map(x=>`<li>${esc(x)}</li>`).join("");
+ document.getElementById("adminFeatureList").innerHTML=APP.features.map(x=>`<li>${esc(x)}</li>`).join("");
+ document.getElementById("roleList").innerHTML=APP.actors.map(x=>`<span class="pill">${esc(x)}</span> `).join("");
+ document.getElementById("regRole").innerHTML=roleOptions();
+ document.getElementById("adminArea").style.display=isAdmin()?"block":"none";
+ document.getElementById("adminHint").textContent=isAdmin()?"Admin access granted. Manage the catalogue and review all submitted records.":"Log in with username admin and password admin123 to access management features.";
+ document.getElementById("catalogHeading").textContent="Browse "+APP.items;
+ document.getElementById("entityFieldLabel").textContent="Choose "+APP.item;
+ document.getElementById("requestHeading").textContent=APP.workflow==="booking"||APP.workflow==="appointment"||APP.workflow==="rental"?"Booking / Appointment Form":APP.workflow==="shop"?"Shopping / Order Form":APP.workflow==="complaint"||APP.workflow==="vet"?"Complaint / Service Request Form":APP.workflow==="vote"?"Election / Vote Form":"Submit "+APP.item+" Request";
+ document.getElementById("requestButton").textContent=APP.workflow==="booking"||APP.workflow==="appointment"||APP.workflow==="rental"?"Submit Booking":APP.workflow==="shop"?"Place Order":APP.workflow==="vote"?"Submit Vote":APP.workflow==="complaint"||APP.workflow==="vet"?"Submit Complaint":"Submit Request";
+ document.getElementById("requestHelp").textContent=APP.workflow==="vote"?"Demo voting only. Do not use this page for real elections.": "Complete the form to create a local demo record. Fields can hold dates, amounts, addresses, route, class, category or other scenario-specific details.";
+ const categories=[...new Set(db.items.map(x=>x.category))],cat=document.getElementById("category"),old=cat.value;
+ cat.innerHTML='<option value="">All</option>'+categories.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");cat.value=categories.includes(old)?old:"";
+ const opts=db.items.map(x=>`<option value="${x.id}">${esc(x.name)} (${esc(x.category)})</option>`).join("");
+ document.getElementById("reqItem").innerHTML=opts||'<option value="">No items yet</option>';
+ renderCatalog();renderProfile();renderMyRecords();renderAdminTables();renderInformation();
+}
+function renderCatalog(){
+ const q=(document.getElementById("search").value||"").toLowerCase(),c=document.getElementById("category").value;
+ let list=db.items.filter(x=>(!q||[x.name,x.category,x.meta,x.description].some(v=>String(v||"").toLowerCase().includes(q)))&&(!c||x.category===c));
+ document.getElementById("catalogCards").innerHTML=list.length?list.map(x=>`<div class="itemcard"><h3>${esc(x.name)}</h3><p>Category/type: ${esc(x.category)}</p><p>${esc(x.meta||"")}</p><p>${APP.workflow==="shop"||APP.workflow==="booking"||APP.workflow==="appointment"||APP.workflow==="rental"?"Price / rate: ":"Value / quantity: "}${esc(x.value)}</p>${x.image?`<img src="${esc(x.image)}" alt="${esc(x.name)}" style="width:100%;max-height:150px;object-fit:cover;border-radius:6px">`:""}<p>${esc(x.description)}</p><button onclick="showDetails(${x.id})">Details</button> <button class="gray" onclick="chooseItem(${x.id})">Select</button></div>`).join(""):'<p class="muted">No matching items found.</p>';
+}
+function showDetails(id){let x=db.items.find(y=>y.id===id);document.getElementById("details").innerHTML=`<h3>${esc(x.name)}</h3><p><b>Category:</b> ${esc(x.category)}</p><p><b>Price/value:</b> ${esc(x.value)}</p><p><b>Location/author/contact:</b> ${esc(x.meta)}</p><p>${esc(x.description)}</p>${x.image?`<img src="${esc(x.image)}" alt="${esc(x.name)}" style="max-width:300px;width:100%">`:""}`}
+function chooseItem(id){document.getElementById("reqItem").value=String(id);showView("request")}
+document.getElementById("registerForm").addEventListener("submit",e=>{e.preventDefault();let email=document.getElementById("regEmail").value.trim();if(db.users.some(u=>u.email.toLowerCase()===email.toLowerCase())){note("registerNotice","This email/username is already registered.",true);return}let role=document.getElementById("regRole").value;if(role==="Administrator"){note("registerNotice","Admin accounts cannot be self-registered. Use the demo admin login.",true);return}db.users.push({name:document.getElementById("regName").value.trim(),email,password:document.getElementById("regPassword").value,role,extra:document.getElementById("regExtra").value.trim()});save();note("registerNotice","Registration successful. You can now log in.")});
+document.getElementById("loginForm").addEventListener("submit",e=>{e.preventDefault();let email=document.getElementById("loginEmail").value.trim(),password=document.getElementById("loginPassword").value;if((email.toLowerCase()==="admin"||email.toLowerCase()==="admin@example.com")&&password==="admin123"){current={name:"Administrator",email:"admin",role:"Administrator"};note("loginNotice","Admin login successful.");renderAll();return}let user=db.users.find(u=>u.email.toLowerCase()===email.toLowerCase()&&u.password===password);if(!user){note("loginNotice","Invalid login details. Register first or use admin / admin123.",true);return}current=user;note("loginNotice","Login successful.");renderAll()});
+function logout(){current=null;note("loginNotice","Logged out successfully.");renderAll()}
+function renderProfile(){let guest=document.getElementById("profileGuest"),form=document.getElementById("profileForm");if(!current||isAdmin()){guest.style.display="block";guest.textContent="Log in as a user to view and update your profile.";form.style.display="none";return}guest.style.display="none";form.style.display="block";document.getElementById("profileName").value=current.name;document.getElementById("profileEmail").value=current.email;document.getElementById("profileExtra").value=current.extra||""}
+document.getElementById("profileForm").addEventListener("submit",e=>{e.preventDefault();if(!current||isAdmin())return;let old=current.email,email=document.getElementById("profileEmail").value.trim();if(db.users.some(u=>u!==current&&u.email.toLowerCase()===email.toLowerCase())){note("profileNotice","That email is already in use.",true);return}let user=db.users.find(u=>u.email===old);user.name=document.getElementById("profileName").value.trim();user.email=email;user.extra=document.getElementById("profileExtra").value.trim();db.records.filter(r=>r.owner===old).forEach(r=>r.owner=email);current=user;save();note("profileNotice","Profile updated.")});
+document.getElementById("requestForm").addEventListener("submit",e=>{e.preventDefault();if(APP.workflow==="vote"&&!current){note("requestNotice","Please log in before voting.",true);return}if(APP.workflow==="vote"&&db.records.some(r=>r.owner===current.email&&r.type==="Vote submitted")){note("requestNotice","A vote has already been recorded for this account in this browser demo.",true);return}let item=db.items.find(x=>x.id===Number(document.getElementById("reqItem").value));let owner=current?current.email:document.getElementById("reqContact").value.trim();let type=APP.workflow==="vote"?"Vote submitted":APP.workflow==="complaint"||APP.workflow==="vet"?"Complaint submitted":APP.workflow==="shop"?"Order placed":APP.workflow==="booking"||APP.workflow==="appointment"||APP.workflow==="rental"?"Booking requested":"Request submitted";let status=APP.workflow==="vote"?"Recorded (demo)":APP.workflow==="complaint"||APP.workflow==="vet"?"Submitted":APP.workflow==="booking"||APP.workflow==="appointment"||APP.workflow==="rental"?"Pending approval":APP.workflow==="shop"?"Order received":"Open";db.records.push({id:Date.now(),owner,name:document.getElementById("reqName").value.trim(),contact:document.getElementById("reqContact").value.trim(),itemId:item?item.id:null,item:item?item.name:"Not selected",date:document.getElementById("reqDate").value||"Not specified",category:document.getElementById("reqType").value.trim(),amount:document.getElementById("reqAmount").value,details:document.getElementById("reqDetails").value.trim(),attachment:document.getElementById("reqAttachment").value.trim(),type,status,created:new Date().toLocaleString()});save();note("requestNotice",APP.workflow==="vote"?"Demo vote saved locally; this is not a secure election system.":"Your record has been saved in this browser.");e.target.reset()});
+function renderMyRecords(){let target=document.getElementById("myRecords"),sum=document.getElementById("mySummary");if(!current){target.innerHTML='<p class="muted">Please log in to see your records.</p>';sum.textContent="No user session.";return}let list=isAdmin()?db.records:db.records.filter(r=>r.owner===current.email);target.innerHTML=list.length?`<table><thead><tr><th>Type</th><th>Item</th><th>Date</th><th>Status</th><th>Details</th></tr></thead><tbody>${list.map(r=>`<tr><td>${esc(r.type)}</td><td>${esc(r.item)}</td><td>${esc(r.date)}</td><td><span class="pill">${esc(r.status)}</span></td><td>${esc(r.details)}</td></tr>`).join("")}</tbody></table>`:'<p class="muted">No records found.</p>';sum.textContent=`${list.length} record(s) shown. Current role: ${current.role}.`}
+function downloadMyRecords(){if(!current){alert("Please log in first.");return}let list=isAdmin()?db.records:db.records.filter(r=>r.owner===current.email);let cols=["type","item","date","status","details","owner"];let csv=[cols.join(","),...list.map(r=>cols.map(c=>'"'+String(r[c]??"").replace(/"/g,'""')+'"').join(","))].join("\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="experiment_"+APP.n+"_records.csv";a.click();URL.revokeObjectURL(a.href)}
+function resetItemForm(){document.getElementById("itemForm").reset();document.getElementById("editId").value=""}
+document.getElementById("itemForm").addEventListener("submit",e=>{e.preventDefault();if(!isAdmin())return;let id=Number(document.getElementById("editId").value),obj={name:document.getElementById("itemName").value.trim(),category:document.getElementById("itemCategory").value.trim(),value:Number(document.getElementById("itemValue").value||0),meta:document.getElementById("itemMeta").value.trim(),description:document.getElementById("itemDescription").value.trim(),image:document.getElementById("itemImage").value.trim()};if(id){Object.assign(db.items.find(x=>x.id===id),obj);note("itemNotice","Item updated successfully.")}else{obj.id=Math.max(0,...db.items.map(x=>x.id))+1;db.items.push(obj);note("itemNotice","Item added successfully.")}save();resetItemForm()});
+function editItem(id){if(!isAdmin())return;let x=db.items.find(y=>y.id===id);document.getElementById("editId").value=x.id;document.getElementById("itemName").value=x.name;document.getElementById("itemCategory").value=x.category;document.getElementById("itemValue").value=x.value;document.getElementById("itemMeta").value=x.meta;document.getElementById("itemDescription").value=x.description;document.getElementById("itemImage").value=x.image||"";document.getElementById("itemForm").scrollIntoView({behavior:"smooth"})}
+function deleteItem(id){if(!isAdmin())return;if(confirm("Delete this catalogue item?")){db.items=db.items.filter(x=>x.id!==id);save()}}
+function renderAdminTables(){let cat=document.getElementById("adminCatalog"),records=document.getElementById("allRecords");if(!isAdmin()){cat.innerHTML="";records.innerHTML="";return}cat.innerHTML=`<table><thead><tr><th>Name</th><th>Category</th><th>Value</th><th>Actions</th></tr></thead><tbody>${db.items.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.category)}</td><td>${esc(x.value)}</td><td><button class="small" onclick="editItem(${x.id})">Edit</button> <button class="small danger" onclick="deleteItem(${x.id})">Delete</button></td></tr>`).join("")}</tbody></table>`;records.innerHTML=db.records.length?`<table><thead><tr><th>Owner</th><th>Type</th><th>Item</th><th>Date</th><th>Status</th><th>Update</th></tr></thead><tbody>${db.records.map(r=>`<tr><td>${esc(r.owner)}</td><td>${esc(r.type)}</td><td>${esc(r.item)}</td><td>${esc(r.date)}</td><td>${esc(r.status)}</td><td><select onchange="changeStatus(${r.id},this.value)"><option>${esc(r.status)}</option><option>Approved</option><option>Rejected</option><option>Confirmed</option><option>Cancelled</option><option>Completed</option><option>Shipped</option><option>Received</option><option>Resolved</option><option>Waiting List</option><option>RAC</option></select></td></tr>`).join("")}</tbody></table>`:'<p class="muted">No records submitted yet.</p>'}
+function changeStatus(id,status){if(!isAdmin())return;let r=db.records.find(x=>x.id===id);if(r){r.status=status;save()}}
+document.getElementById("infoForm").addEventListener("submit",e=>{e.preventDefault();if(!isAdmin())return;db.infos.push({title:document.getElementById("infoTitle").value.trim(),text:document.getElementById("infoText").value.trim()});save();note("infoNotice","Information saved.");e.target.reset()});
+function renderInformation(){let arr=db.infos||[];document.getElementById("savedInfo").innerHTML=arr.map(x=>`<div class="panel"><h3>${esc(x.title)}</h3><p>${esc(x.text)}</p></div>`).join("");document.getElementById("informationContent").innerHTML='<p>Use this section for contact information, FAQs, local guides, policies, news and other information relevant to this experiment.</p>'+arr.map(x=>`<div class="panel"><h3>${esc(x.title)}</h3><p>${esc(x.text)}</p></div>`).join("")}
+document.getElementById("contactForm").addEventListener("submit",e=>{e.preventDefault();db.messages.push({name:document.getElementById("contactName").value,email:document.getElementById("contactEmail").value,subject:document.getElementById("contactSubject").value,message:document.getElementById("contactMessage").value,date:new Date().toLocaleString()});save();note("contactNotice","Message / feedback saved locally.");e.target.reset()});
+renderAll();
+</script>
+</body>
+</html>
